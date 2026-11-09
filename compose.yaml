@@ -1,0 +1,57 @@
+services:
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_KV_CACHE_TYPE: q8_0
+    volumes:
+      - ollama_data:/root/.ollama
+    expose:
+      - "11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  ollama-models:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: ollama:11434
+      VISION_MODEL: ${VISION_MODEL:-qwen3-vl:4b-instruct}
+      FALLBACK_MODELS: ${FALLBACK_MODELS:-qwen3-vl:4b gemma3:4b}
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        for model in "$${VISION_MODEL}" $${FALLBACK_MODELS}; do
+          echo "Pulling $$model if it is not already available...";
+          ollama pull "$$model" && exit 0;
+        done;
+        echo "Could not pull any configured vision model." >&2;
+        exit 1
+    restart: "no"
+
+  leaf-doctor:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      ollama-models:
+        condition: service_completed_successfully
+    environment:
+      OLLAMA_HOST: ollama:11434
+      VISION_MODEL: ${VISION_MODEL:-qwen3-vl:4b-instruct}
+      FALLBACK_MODELS: ${FALLBACK_MODELS:-qwen3-vl:4b gemma3:4b}
+      LEAF_NUM_CTX: ${LEAF_NUM_CTX:-12288}
+    ports:
+      - "127.0.0.1:8501:8501"
+
+volumes:
+  ollama_data:

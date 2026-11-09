@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+
+# Ollama downloads are large, generated model data.
+/models/*
+!/models/.gitkeep
