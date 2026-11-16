@@ -12,6 +12,16 @@ Leaf Doctor is an AI-powered plant health assistant. Upload a photo of a leaf, f
 - Compare possible diseases with the crop knowledge base.
 - Generate a farmer-friendly report with treatment guidance and web sources.
 
+## Screenshots
+
+### Diagnosis
+
+![Leaf Doctor diagnosis screen](screenshots/leaf-doctor-diagnosis.png)
+
+### Treatment report
+
+![Leaf Doctor treatment report](screenshots/leaf-doctor-report.png)
+
 ## Run with Docker
 
 ### Requirements
